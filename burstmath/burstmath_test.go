@@ -1,6 +1,7 @@
 package burstmath
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -100,4 +101,24 @@ func TestDateToTimeStamp(t *testing.T) {
 	loc, _ := time.LoadLocation("UTC")
 	assert.Equal(t, int64(0), DateToTimeStamp(time.Date(1995, time.August, 2, 2, 2, 0, 0, loc)))
 	assert.Equal(t, int64(62380920), DateToTimeStamp(time.Date(2016, time.August, 2, 2, 2, 0, 0, loc)))
+}
+
+func BenchmarkCalcDeadline(b *testing.B) {
+	reqHandler := NewDeadlineRequestHandler(8)
+	genSig, _ := DecodeGeneratorSignature("2a0757c8af2aa43b29515c872385ede31d0742b1ea29b93a1a8c38a11b8a37a0")
+
+	sem := make(chan struct{}, 100)
+	var wg sync.WaitGroup
+	for n := 0; n < b.N-b.N%8; n++ {
+		sem <- struct{}{}
+		wg.Add(1)
+		go func(accountID uint64) {
+			req := NewCalcDeadlineRequest(accountID, 6729, 18325193796, 30, genSig, false)
+			reqHandler.CalcDeadline(req)
+			<-sem
+			wg.Done()
+
+		}(uint64(n))
+	}
+	wg.Wait()
 }
