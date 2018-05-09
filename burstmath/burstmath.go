@@ -35,7 +35,8 @@ type CalcDeadlineRequest struct {
 
 // NewCalcDeadlineRequest allocated paramters neeeded for deadline
 // calculation native so that C can deal with it
-func NewCalcDeadlineRequest(accountID, nonce, baseTarget uint64, scoop uint32, genSig []byte) *CalcDeadlineRequest {
+func NewCalcDeadlineRequest(accountID, nonce, baseTarget uint64, scoop uint32, genSig []byte,
+	poc2 bool) *CalcDeadlineRequest {
 	var deadline C.uint64_t
 	return &CalcDeadlineRequest{
 		native: &C.CalcDeadlineRequest{
@@ -44,7 +45,9 @@ func NewCalcDeadlineRequest(accountID, nonce, baseTarget uint64, scoop uint32, g
 			base_target: C.uint64_t(baseTarget),
 			scoop_nr:    C.uint32_t(scoop),
 			gen_sig:     (*C.uint8_t)(unsafe.Pointer(&genSig[0])),
-			deadline:    &deadline},
+			deadline:    &deadline,
+			poc2:        C.bool(poc2)},
+
 		deadline: make(chan uint64)}
 }
 
@@ -59,13 +62,13 @@ func CalcScoop(height uint64, genSig []byte) uint32 {
 }
 
 // CalculateDeadlinesSSE4 can calculate 4 deadlines in parallel using sse4 intrinsics
-func CalculateDeadlinesSSE4(reqs []*C.CalcDeadlineRequest, poc2 bool) {
-	C.calculate_deadlines_sse4((**C.CalcDeadlineRequest)(unsafe.Pointer(&reqs[0])), C.bool(poc2))
+func CalculateDeadlinesSSE4(reqs []*C.CalcDeadlineRequest) {
+	C.calculate_deadlines_sse4((**C.CalcDeadlineRequest)(unsafe.Pointer(&reqs[0])))
 }
 
 // CalculateDeadlinesAVX2 can calculate 8 deadlines in parallel using avx2 vector extensions
-func CalculateDeadlinesAVX2(reqs []*C.CalcDeadlineRequest, poc2 bool) {
-	C.calculate_deadlines_avx2((**C.CalcDeadlineRequest)(unsafe.Pointer(&reqs[0])), C.bool(poc2))
+func CalculateDeadlinesAVX2(reqs []*C.CalcDeadlineRequest) {
+	C.calculate_deadlines_avx2((**C.CalcDeadlineRequest)(unsafe.Pointer(&reqs[0])))
 }
 
 // DecodeGeneratorSignature transforms the generation signature given as hex string into a byte string
@@ -242,9 +245,9 @@ func (w *worker) processReqs(reqs [avx2Parallel]*CalcDeadlineRequest, total int)
 	}
 
 	if w.avx2 {
-		CalculateDeadlinesAVX2(w.creqs, false) // TODO: activate poc2
+		CalculateDeadlinesAVX2(w.creqs)
 	} else {
-		CalculateDeadlinesSSE4(w.creqs, false) // TODO: activate poc2
+		CalculateDeadlinesSSE4(w.creqs)
 	}
 
 	for i := 0; i < total; i++ {
