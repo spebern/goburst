@@ -53,7 +53,6 @@ func NewCalcDeadlineRequest(accountID, nonce, baseTarget uint64, scoop uint32, g
 			gen_sig:     (*C.uint8_t)(unsafe.Pointer(&genSig[0])),
 			deadline:    &deadline,
 			poc2:        C.bool(poc2)},
-
 		deadline: make(chan uint64)}
 }
 
