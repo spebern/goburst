@@ -24,6 +24,12 @@ const (
 	avx2Parallel    = 8
 	sse4Parallel    = 4
 	blockChainStart = 1407722400
+
+	// GenesisBaseTarget is the base target of the first block
+	GenesisBaseTarget = 18325193796
+
+	// BlockChainStart is the timestamp of the first Block
+	BlockChainStart = 1407722400
 )
 
 // CalcDeadlineRequest stores paramters native that are
