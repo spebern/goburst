@@ -96,6 +96,7 @@ type DeadlineRequestHandler struct {
 	batchReqs chan calcDeadlineRequestBatch
 	stop      chan struct{}
 	workers   []*worker
+	timeout   time.Duration
 }
 
 type worker struct {
@@ -112,12 +113,23 @@ type calcDeadlineRequestBatch struct {
 
 // NewDeadlineRequestHandler creates a new struct that spawns workerCount workers
 // processing deadline requests
-func NewDeadlineRequestHandler(workerCount int) *DeadlineRequestHandler {
+func NewDeadlineRequestHandler(workerCount int, timeoutSeconds ...int64) *DeadlineRequestHandler {
+	var timeout time.Duration
+	if len(timeoutSeconds) > 0 {
+		if timeoutSeconds[0] < 0 {
+			panic("timeout cannot be negativ")
+		}
+		timeout = time.Duration(timeoutSeconds[0]) * time.Second
+	} else {
+		timeout = 2 * time.Second
+	}
+
 	reqHandler := &DeadlineRequestHandler{
 		workers:   make([]*worker, workerCount),
 		reqs:      make(chan *CalcDeadlineRequest),
 		batchReqs: make(chan calcDeadlineRequestBatch, workerCount),
-		stop:      make(chan struct{})}
+		stop:      make(chan struct{}),
+		timeout:   timeout}
 
 	var avx2 bool
 	switch {
@@ -156,7 +168,7 @@ func (reqHandler *DeadlineRequestHandler) collectDeadlineReqsAVX2() {
 		select {
 		case reqs[pending] = <-reqHandler.reqs:
 			if pending == 0 {
-				timeout = time.After(2 * time.Second)
+				timeout = time.After(reqHandler.timeout)
 			} else if pending == avx2Parallel-1 {
 				reqHandler.batchReqs <- calcDeadlineRequestBatch{
 					pending: pending + 1,

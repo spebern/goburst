@@ -75,7 +75,9 @@ func TestCalculateDeadlines(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	reqHandler := NewDeadlineRequestHandler(4)
+	reqHandler := NewDeadlineRequestHandler(4, 3)
+
+	assert.Equal(t, 3*time.Second, reqHandler.timeout, "timout is wrong")
 
 	genSig, _ := DecodeGeneratorSignature("2a0757c8af2aa43b29515c872385ede31d0742b1ea29b93a1a8c38a11b8a37a0")
 	req := NewCalcDeadlineRequest(10282355196851764065, 6729, 18325193796, 30, genSig, false)
