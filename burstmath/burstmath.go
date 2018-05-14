@@ -51,7 +51,7 @@ func NewCalcDeadlineRequest(accountID, nonce, baseTarget uint64, scoop uint32, g
 			base_target: C.uint64_t(baseTarget),
 			scoop_nr:    C.uint32_t(scoop),
 			gen_sig:     (*C.uint8_t)(unsafe.Pointer(&genSig[0])),
-			deadline:    &deadline,
+			deadline:    deadline,
 			poc2:        C.bool(poc2)},
 		deadline: make(chan uint64)}
 }
@@ -64,6 +64,12 @@ func newCalcDeadlineRequests() []*C.CalcDeadlineRequest {
 // CalcScoop calculated the scoop for a given height and generation signature
 func CalcScoop(height uint64, genSig []byte) uint32 {
 	return uint32(C.calculate_scoop(C.uint64_t(height), (*C.uint8_t)(&genSig[0])))
+}
+
+// CalculateDeadline calculates a single deadline
+// TODO: might fail on some go versions(cgo argument has Go pointer to Go pointer): GODEBUG=cgocheck=0
+func CalculateDeadline(req *C.CalcDeadlineRequest) {
+	C.calculate_deadline(req)
 }
 
 // CalculateDeadlinesSSE4 can calculate 4 deadlines in parallel using sse4 intrinsics
@@ -268,7 +274,7 @@ func (w *worker) processReqs(reqs [avx2Parallel]*CalcDeadlineRequest, total int)
 	}
 
 	for i := 0; i < total; i++ {
-		reqs[i].deadline <- uint64(*reqs[i].native.deadline)
+		reqs[i].deadline <- uint64(reqs[i].native.deadline)
 	}
 }
 

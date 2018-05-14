@@ -47,6 +47,55 @@ uint32_t calculate_scoop(uint64_t height, uint8_t *gensig) {
   return ((new_gensig[30] & 0x0F) << 8) | new_gensig[31];
 }
 
+void calculate_deadline(CalcDeadlineRequest *req) {
+  char final[32];
+  char gendata[16 + NONCE_SIZE];
+  char *xv;
+
+  SET_NONCE(gendata, req->account_id, 0);
+  SET_NONCE(gendata, req->nonce, 8);
+
+  shabal_context x;
+  int len;
+
+  for (int i = NONCE_SIZE; i > 0; i -= HASH_SIZE) {
+    shabal_init(&x, 256);
+
+    len = NONCE_SIZE + 16 - i;
+    if (len > HASH_CAP)
+      len = HASH_CAP;
+
+    shabal(&x, &gendata[i], len);
+    shabal_close(&x, 0, 0, &gendata[i - HASH_SIZE]);
+  }
+
+  shabal_init(&x, 256);
+  shabal(&x, gendata, 16 + NONCE_SIZE);
+  shabal_close(&x, 0, 0, final);
+
+  // XOR with final
+  for (int i = 0; i < NONCE_SIZE; i++)
+      gendata[i] ^= (final[i % 32]);
+
+  shabal_context deadline_sc;
+  shabal_init(&deadline_sc, 256);
+  shabal(&deadline_sc, req->gen_sig, HASH_SIZE);
+
+  uint8_t scoop[SCOOP_SIZE];
+  memcpy(scoop, gendata + (req->scoop_nr * SCOOP_SIZE), 32);
+  if (req->poc2) {
+      memcpy(scoop + 32, gendata + ((4095 - req->scoop_nr) * SCOOP_SIZE) + 32, 32);
+  } else{
+      memcpy(scoop + 32, gendata + (req->scoop_nr * SCOOP_SIZE) + 32, 32);
+  }
+
+  uint8_t finals2[HASH_SIZE];
+  shabal(&deadline_sc, scoop, SCOOP_SIZE);
+  shabal_close(&deadline_sc, 0, 0, (uint32_t *)finals2);
+
+  req->deadline = *(uint64_t *)finals2 / req->base_target;
+}
+
 void calculate_deadlines_sse4(CalcDeadlineRequest **reqs){
   char finals[SSE4_PARALLEL][32];
   char gendata[SSE4_PARALLEL][16 + NONCE_SIZE];
@@ -102,7 +151,7 @@ void calculate_deadlines_sse4(CalcDeadlineRequest **reqs){
                      (uint32_t *)finals2[2], (uint32_t *)finals2[3]);
 
   for (int i = 0; i < SSE4_PARALLEL; i++)
-    *reqs[i]->deadline = *(uint64_t *)finals2[i] / reqs[i]->base_target;
+    reqs[i]->deadline = *(uint64_t *)finals2[i] / reqs[i]->base_target;
 }
 
 void calculate_deadlines_avx2(CalcDeadlineRequest **reqs) {
@@ -172,5 +221,5 @@ void calculate_deadlines_avx2(CalcDeadlineRequest **reqs) {
                    (uint32_t *)finals2[6], (uint32_t *)finals2[7]);
 
   for (int i = 0; i < AVX2_PARALLEL; i++)
-    *reqs[i]->deadline = *(uint64_t *)finals2[i] / reqs[i]->base_target;;
+    reqs[i]->deadline = *(uint64_t *)finals2[i] / reqs[i]->base_target;;
 }

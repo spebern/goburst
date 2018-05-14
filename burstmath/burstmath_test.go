@@ -27,11 +27,6 @@ func TestCalcScoop(t *testing.T) {
 }
 
 func TestCalculateDeadlines(t *testing.T) {
-	if !cpuid.CPU.SSE4() {
-		t.Log("SSE4 not supported, skipping related tests")
-		return
-	}
-
 	genSig, _ := DecodeGeneratorSignature("2a0757c8af2aa43b29515c872385ede31d0742b1ea29b93a1a8c38a11b8a37a0")
 
 	reqs := newCalcDeadlineRequests()
@@ -44,15 +39,26 @@ func TestCalculateDeadlines(t *testing.T) {
 		reqsPoC2[i] = NewCalcDeadlineRequest(10282355196851764065, 6729, 18325193796, 30, genSig, true).native
 	}
 
+	CalculateDeadline(reqs[0])
+	assert.Equal(t, uint64(0x1e847df3), uint64(reqs[0].deadline), "Calculated deadline is incorrect")
+
+	CalculateDeadline(reqsPoC2[0])
+	assert.Equal(t, uint64(0x37143a0a), uint64(reqsPoC2[0].deadline), "Calculated deadline is incorrect POC2")
+
+	if !cpuid.CPU.SSE4() {
+		t.Log("SSE4 not supported, skipping related tests")
+		return
+	}
+
 	CalculateDeadlinesSSE4(reqs)
 	for i := 0; i < 4; i++ {
-		assert.Equal(t, uint64(0x1e847df3), uint64(*reqs[i].deadline),
+		assert.Equal(t, uint64(0x1e847df3), uint64(reqs[i].deadline),
 			"Calculated deadline is incorrect SSE4")
 	}
 
 	CalculateDeadlinesSSE4(reqsPoC2)
 	for i := 0; i < 4; i++ {
-		assert.Equal(t, uint64(0x37143a0a), uint64(*reqsPoC2[i].deadline),
+		assert.Equal(t, uint64(0x37143a0a), uint64(reqsPoC2[i].deadline),
 			"Calculated deadline is incorrect SSE4 POC2")
 	}
 
@@ -63,13 +69,13 @@ func TestCalculateDeadlines(t *testing.T) {
 
 	CalculateDeadlinesAVX2(reqs)
 	for i := 0; i < 8; i++ {
-		assert.Equal(t, uint64(0x1e847df3), uint64(*reqs[i].deadline),
+		assert.Equal(t, uint64(0x1e847df3), uint64(reqs[i].deadline),
 			"Calculated deadline is incorrect AVX2")
 	}
 
 	CalculateDeadlinesAVX2(reqsPoC2)
 	for i := 0; i < 8; i++ {
-		assert.Equal(t, uint64(0x37143a0a), uint64(*reqsPoC2[i].deadline),
+		assert.Equal(t, uint64(0x37143a0a), uint64(reqsPoC2[i].deadline),
 			"Calculated deadline is incorrect AVX2 POC2")
 	}
 }
