@@ -1,3 +1,4 @@
 *.prof
 *.o
 *.a
+/.cquery_cached_index
