@@ -23,6 +23,32 @@ type SubmitNonceReply struct {
 	errorDescriptionField
 }
 
+type GetBlockReply struct {
+	PreviousBlockHash    string      `json:"previousBlockHash"`
+	PayloadLength        int         `json:"payloadLength"`
+	TotalAmountNQT       int64       `json:"totalAmountNQT,string"`
+	GenerationSignature  string      `json:"generationSignature"`
+	Generator            uint64      `json:"generator,string"`
+	GeneratorPublicKey   string      `json:"generatorPublicKey"`
+	BaseTarget           uint64      `json:"baseTarget,string"`
+	PayloadHash          string      `json:"payloadHash"`
+	GeneratorRS          string      `json:"generatorRS"`
+	BlockReward          int64       `json:"blockReward,string"`
+	ScoopNum             uint32      `json:"scoopNum"`
+	NumberOfTransactions int         `json:"numberOfTransactions"`
+	BlockSignature       string      `json:"blockSignature"`
+	Transactions         []Uint64Str `json:"transactions"`
+	Nonce                uint64      `json:"nonce,string"`
+	Version              int         `json:"version"`
+	TotalFeeNQT          int64       `json:"totalFeeNQT,string"`
+	PreviousBlock        uint64      `json:"previousBlock,string"`
+	Block                uint64      `json:"block,string"`
+	NextBlock            uint64      `json:"nextBlock,string"`
+	Height               uint64      `json:"height"`
+	Timestamp            uint64      `json:"timestamp"`
+	errorDescriptionField
+}
+
 type errorDescriptionField struct {
 	ErrorDescription string `json:"errorDescription,omitempty"`
 }
@@ -87,7 +113,7 @@ type Wallet interface {
 	// GetBidOrder() (*GetBidOrderReply, error)
 	// GetBidOrderIds() (*GetBidOrderIdsReply, error)
 	// GetBidOrders() (*GetBidOrdersReply, error)
-	// GetBlock() (*GetBlockReply, error)
+	GetBlock(height, block, timestamp uint64, includeTransactions bool) (*GetBlockReply, error)
 	// GetBlockId() (*GetBlockIdReply, error)
 	// GetBlockchainStatus() (*GetBlockchainStatusReply, error)
 	// GetBlocks() (*GetBlocksReply, error)
@@ -141,6 +167,28 @@ type wallet struct {
 	client *http.Client
 	url    string
 	apiURL string
+}
+
+type Uint64Str uint64
+
+func (i Uint64Str) MarshalJSON() ([]byte, error) {
+	return json.Marshal(strconv.FormatUint(uint64(i), 10))
+}
+
+func (i *Uint64Str) UnmarshalJSON(b []byte) error {
+	// Try string first
+	var s string
+	if err := json.Unmarshal(b, &s); err == nil {
+		value, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return err
+		}
+		*i = Uint64Str(value)
+		return nil
+	}
+
+	// Fallback to number
+	return json.Unmarshal(b, (*uint64)(i))
 }
 
 func NewWallet(url string, timeout time.Duration) Wallet {
@@ -198,4 +246,24 @@ func (w *wallet) SubmitNonce(accountID, nonce uint64, secretPhrase string) (*Sub
 		"accountId":    strconv.FormatUint(accountID, 10),
 		"nonce":        strconv.FormatUint(nonce, 10),
 		"secretPhrase": secretPhrase}, &submitNonceReply)
+}
+
+func (w *wallet) GetBlock(height, block, timestamp uint64, includeTransactions bool) (*GetBlockReply, error) {
+	var getBlockReply GetBlockReply
+	params := map[string]string{"requestType": "getBlock"}
+	if height != 0 {
+		params["height"] = strconv.FormatUint(height, 10)
+	}
+	if block != 0 {
+		params["block"] = strconv.FormatUint(block, 10)
+	}
+	if timestamp != 0 {
+		params["timestamp"] = strconv.FormatUint(timestamp, 10)
+	}
+	if includeTransactions {
+		params["includeTransactions"] = "1"
+	} else {
+		params["includeTransactions"] = "0"
+	}
+	return &getBlockReply, w.processJSONRequest("GET", params, &getBlockReply)
 }
