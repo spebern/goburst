@@ -199,7 +199,3 @@ func (w *wallet) SubmitNonce(accountID, nonce uint64, secretPhrase string) (*Sub
 		"nonce":        strconv.FormatUint(nonce, 10),
 		"secretPhrase": secretPhrase}, &submitNonceReply)
 }
-
-func (w *wallet) requestURL(map[string]string) {
-	return
-}
