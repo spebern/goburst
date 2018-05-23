@@ -1,5 +1,3 @@
-// (c) 2018 PoC Consortium ALL RIGHTS RESERVED
-
 #include <stdbool.h>
 #include <stdint.h>
 

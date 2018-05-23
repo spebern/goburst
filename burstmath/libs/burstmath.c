@@ -1,5 +1,3 @@
-// (c) 2018 PoC Consortium ALL RIGHTS RESERVED
-
 #define USE_MULTI_SHABAL
 #define _GNU_SOURCE
 #define _LARGEFILE64_SOURCE
