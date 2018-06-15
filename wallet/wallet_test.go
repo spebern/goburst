@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	devWalletURL = "http://176.9.47.157:6876"
+	devWalletURL = "http://wallet.dev.burst-test.net:6876"
+	secretPhrase = "huge nice raw lovely break remember dig mighty cause war keep dreamer"
 )
 
-var w = NewWallet(devWalletURL, 10*time.Second).(*wallet)
+var w = NewWallet(devWalletURL, secretPhrase, 10*time.Second).(*wallet)
 
 func TestNewWallet(t *testing.T) {
 	assert.Equal(t, w.url, devWalletURL)

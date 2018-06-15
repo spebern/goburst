@@ -176,9 +176,10 @@ type Wallet interface {
 }
 
 type wallet struct {
-	client *http.Client
-	url    string
-	apiURL string
+	client       *http.Client
+	url          string
+	apiURL       string
+	secretPhrase string
 }
 
 type Uint64Str uint64
@@ -203,11 +204,12 @@ func (i *Uint64Str) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, (*uint64)(i))
 }
 
-func NewWallet(url string, timeout time.Duration) Wallet {
+func NewWallet(url string, secretPhrase string, timeout time.Duration) Wallet {
 	return &wallet{
-		url:    url,
-		apiURL: url + "/burst",
-		client: &http.Client{Timeout: timeout}}
+		url:          url,
+		apiURL:       url + "/burst",
+		secretPhrase: secretPhrase,
+		client:       &http.Client{Timeout: timeout}}
 }
 
 func (w *wallet) processJSONRequest(method string, params map[string]string, dest failable) error {
