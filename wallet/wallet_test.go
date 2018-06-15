@@ -38,6 +38,13 @@ func TestSubmitNonce(t *testing.T) {
 	}
 }
 
+func TestGetAccountsWithRewardRecipient(t *testing.T) {
+	res, err := w.GetAccountsWithRewardRecipient(5658931570366906527)
+	if assert.Nil(t, err) {
+		assert.NotEmpty(t, res.Recipients)
+	}
+}
+
 func TestGetBlock(t *testing.T) {
 	res, err := w.GetBlock(4, 0, 0, true)
 	if !assert.Nil(t, err) {

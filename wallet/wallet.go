@@ -48,6 +48,11 @@ type GetBlockReply struct {
 	errorDescriptionField
 }
 
+type GetAccountsWithRewardRecipientReply struct {
+	Recipients []Uint64Str `json:"accounts"`
+	errorDescriptionField
+}
+
 type failable interface {
 	getError() string
 }
@@ -100,7 +105,7 @@ type Wallet interface {
 	// GetAccountSubscriptions() (*GetAccountSubscriptionsReply, error)
 	// GetAccountTransactionIds() (*GetAccountTransactionIdsReply, error)
 	// GetAccountTransactions() (*GetAccountTransactionsReply, error)
-	// GetAccountsWithRewardRecipient() (*GetAccountsWithRewardRecipientReply, error)
+	GetAccountsWithRewardRecipient(uint64) (*GetAccountsWithRewardRecipientReply, error)
 	// GetAlias() (*GetAliasReply, error)
 	// GetAliases() (*GetAliasesReply, error)
 	// GetAllAssets() (*GetAllAssetsReply, error)
@@ -272,4 +277,11 @@ func (w *wallet) GetBlock(height, block, timestamp uint64, includeTransactions b
 		params["includeTransactions"] = "0"
 	}
 	return &getBlockReply, w.processJSONRequest("GET", params, &getBlockReply)
+}
+
+func (w *wallet) GetAccountsWithRewardRecipient(accountID uint64) (*GetAccountsWithRewardRecipientReply, error) {
+	var getAccountsWithRewardRecipientReply GetAccountsWithRewardRecipientReply
+	return &getAccountsWithRewardRecipientReply, w.processJSONRequest("POST", map[string]string{
+		"requestType": "getAccountsWithRewardRecipient",
+		"account":     strconv.FormatUint(accountID, 10)}, &getAccountsWithRewardRecipientReply)
 }
