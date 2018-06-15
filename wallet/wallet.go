@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 	"time"
 )
@@ -49,8 +48,16 @@ type GetBlockReply struct {
 	errorDescriptionField
 }
 
+type failable interface {
+	getError() string
+}
+
 type errorDescriptionField struct {
 	ErrorDescription string `json:"errorDescription,omitempty"`
+}
+
+func (ef errorDescriptionField) getError() string {
+	return ef.ErrorDescription
 }
 
 type Wallet interface {
@@ -198,7 +205,7 @@ func NewWallet(url string, timeout time.Duration) Wallet {
 		client: &http.Client{Timeout: timeout}}
 }
 
-func (w *wallet) processJSONRequest(method string, params map[string]string, dest interface{}) error {
+func (w *wallet) processJSONRequest(method string, params map[string]string, dest failable) error {
 	req, err := http.NewRequest(method, w.apiURL, nil)
 	if err != nil {
 		return err
@@ -226,8 +233,7 @@ func (w *wallet) processJSONRequest(method string, params map[string]string, des
 		return err
 	}
 
-	errDescription := reflect.ValueOf(dest).Elem().FieldByName("ErrorDescription").String()
-	if errDescription != "" {
+	if errDescription := dest.getError(); errDescription != "" {
 		return errors.New(errDescription)
 	}
 	return nil
