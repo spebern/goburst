@@ -3,6 +3,7 @@ package wallet
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -50,6 +51,16 @@ type GetBlockReply struct {
 
 type GetAccountsWithRewardRecipientReply struct {
 	Recipients []Uint64Str `json:"accounts"`
+	errorDescriptionField
+}
+
+type SendMoneyReply struct {
+	TxID uint64 `json:"transaction,string"`
+	errorDescriptionField
+}
+
+type SendMoneyMultiReply struct {
+	TxID uint64 `json:"transaction,string"`
 	errorDescriptionField
 }
 
@@ -163,7 +174,8 @@ type Wallet interface {
 	// RsConvert() (*RsConvertReply, error)
 	// SellAlias() (*SellAliasReply, error)
 	// SendMessage() (*SendMessageReply, error)
-	// SendMoney() (*SendMoneyReply, error)
+	SendMoney(uint64, int64, int64) (*SendMoneyReply, error)
+	SendMoneyMulti(map[uint64]int64, int64) (*SendMoneyMultiReply, error)
 	// SendMoneyEscrow() (*SendMoneyEscrowReply, error)
 	// SendMoneySubscription() (*SendMoneySubscriptionReply, error)
 	// SetAccountInfo() (*SetAccountInfoReply, error)
@@ -286,4 +298,31 @@ func (w *wallet) GetAccountsWithRewardRecipient(accountID uint64) (*GetAccountsW
 	return &getAccountsWithRewardRecipientReply, w.processJSONRequest("POST", map[string]string{
 		"requestType": "getAccountsWithRewardRecipient",
 		"account":     strconv.FormatUint(accountID, 10)}, &getAccountsWithRewardRecipientReply)
+}
+
+func (w *wallet) SendMoney(accountID uint64, amount int64, txFee int64) (*SendMoneyReply, error) {
+	var sendMoneyReply SendMoneyReply
+	return &sendMoneyReply, w.processJSONRequest("POST", map[string]string{
+		"requestType":  "sendMoney",
+		"recipient":    strconv.FormatUint(accountID, 10),
+		"deadline":     "1440",
+		"feeNQT":       fmt.Sprint(txFee),
+		"amountNQT":    fmt.Sprint(amount),
+		"secretPhrase": w.secretPhrase}, sendMoneyReply)
+}
+
+func (w *wallet) SendMoneyMulti(idToAmount map[uint64]int64, txFee int64) (*SendMoneyMultiReply, error) {
+	var sendMoneyMultiReply SendMoneyMultiReply
+
+	recipients := ""
+	for accountID, amount := range idToAmount {
+		recipients += strconv.FormatUint(accountID, 10) + ":" + fmt.Sprint(amount) + ";"
+	}
+
+	return &sendMoneyMultiReply, w.processJSONRequest("POST", map[string]string{
+		"requestType":  "sendMoneyMulti",
+		"recipients":   recipients[:len(recipients)-1], // without trailing ";"
+		"deadline":     "1440",
+		"feeNQT":       fmt.Sprint(txFee),
+		"secretPhrase": w.secretPhrase}, &sendMoneyMultiReply)
 }
