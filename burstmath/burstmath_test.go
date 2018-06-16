@@ -31,19 +31,11 @@ func TestCalculateDeadlines(t *testing.T) {
 
 	reqs := newCalcDeadlineRequests()
 	for i := 0; i < 8; i++ {
-		reqs[i] = NewCalcDeadlineRequest(10282355196851764065, 6729, 18325193796, 30, genSig, false).native
-	}
-
-	reqsPoC2 := newCalcDeadlineRequests()
-	for i := 0; i < 8; i++ {
-		reqsPoC2[i] = NewCalcDeadlineRequest(10282355196851764065, 6729, 18325193796, 30, genSig, true).native
+		reqs[i] = NewCalcDeadlineRequest(10282355196851764065, 6729, 18325193796, 30, genSig).native
 	}
 
 	CalculateDeadline(reqs[0])
-	assert.Equal(t, uint64(0x1e847df3), uint64(reqs[0].deadline), "Calculated deadline is incorrect")
-
-	CalculateDeadline(reqsPoC2[0])
-	assert.Equal(t, uint64(0x37143a0a), uint64(reqsPoC2[0].deadline), "Calculated deadline is incorrect POC2")
+	assert.Equal(t, uint64(0x37143a0a), uint64(reqs[0].deadline), "Calculated deadline is incorrect")
 
 	if !cpuid.CPU.SSE4() {
 		t.Log("SSE4 not supported, skipping related tests")
@@ -52,14 +44,8 @@ func TestCalculateDeadlines(t *testing.T) {
 
 	CalculateDeadlinesSSE4(reqs)
 	for i := 0; i < 4; i++ {
-		assert.Equal(t, uint64(0x1e847df3), uint64(reqs[i].deadline),
+		assert.Equal(t, uint64(0x37143a0a), uint64(reqs[i].deadline),
 			"Calculated deadline is incorrect SSE4")
-	}
-
-	CalculateDeadlinesSSE4(reqsPoC2)
-	for i := 0; i < 4; i++ {
-		assert.Equal(t, uint64(0x37143a0a), uint64(reqsPoC2[i].deadline),
-			"Calculated deadline is incorrect SSE4 POC2")
 	}
 
 	if !cpuid.CPU.AVX2() {
@@ -69,14 +55,8 @@ func TestCalculateDeadlines(t *testing.T) {
 
 	CalculateDeadlinesAVX2(reqs)
 	for i := 0; i < 8; i++ {
-		assert.Equal(t, uint64(0x1e847df3), uint64(reqs[i].deadline),
+		assert.Equal(t, uint64(0x37143a0a), uint64(reqs[i].deadline),
 			"Calculated deadline is incorrect AVX2")
-	}
-
-	CalculateDeadlinesAVX2(reqsPoC2)
-	for i := 0; i < 8; i++ {
-		assert.Equal(t, uint64(0x37143a0a), uint64(reqsPoC2[i].deadline),
-			"Calculated deadline is incorrect AVX2 POC2")
 	}
 }
 
@@ -86,11 +66,11 @@ func TestAll(t *testing.T) {
 	assert.Equal(t, 3*time.Second, reqHandler.timeout, "timout is wrong")
 
 	genSig, _ := DecodeGeneratorSignature("2a0757c8af2aa43b29515c872385ede31d0742b1ea29b93a1a8c38a11b8a37a0")
-	req := NewCalcDeadlineRequest(10282355196851764065, 6729, 18325193796, 30, genSig, false)
+	req := NewCalcDeadlineRequest(10282355196851764065, 6729, 18325193796, 30, genSig)
 
 	deadline := reqHandler.CalcDeadline(req)
 
-	assert.Equal(t, uint64(0x1e847df3), deadline, "Calculated deadline is incorrect")
+	assert.Equal(t, uint64(0x37143a0a), deadline, "Calculated deadline is incorrect")
 
 	reqHandler.Stop()
 }
@@ -121,7 +101,7 @@ func BenchmarkCalcDeadline(b *testing.B) {
 		sem <- struct{}{}
 		wg.Add(1)
 		go func(accountID uint64) {
-			req := NewCalcDeadlineRequest(accountID, 6729, 18325193796, 30, genSig, false)
+			req := NewCalcDeadlineRequest(accountID, 6729, 18325193796, 30, genSig)
 			reqHandler.CalcDeadline(req)
 			<-sem
 			wg.Done()

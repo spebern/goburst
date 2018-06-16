@@ -41,8 +41,7 @@ type CalcDeadlineRequest struct {
 
 // NewCalcDeadlineRequest allocated paramters neeeded for deadline
 // calculation native so that C can deal with it
-func NewCalcDeadlineRequest(accountID, nonce, baseTarget uint64, scoop uint32, genSig []byte,
-	poc2 bool) *CalcDeadlineRequest {
+func NewCalcDeadlineRequest(accountID, nonce, baseTarget uint64, scoop uint32, genSig []byte) *CalcDeadlineRequest {
 	var deadline C.uint64_t
 	return &CalcDeadlineRequest{
 		native: &C.CalcDeadlineRequest{
@@ -51,8 +50,7 @@ func NewCalcDeadlineRequest(accountID, nonce, baseTarget uint64, scoop uint32, g
 			base_target: C.uint64_t(baseTarget),
 			scoop_nr:    C.uint32_t(scoop),
 			gen_sig:     (*C.uint8_t)(unsafe.Pointer(&genSig[0])),
-			deadline:    deadline,
-			poc2:        C.bool(poc2)},
+			deadline:    deadline},
 		deadline: make(chan uint64)}
 }
 

@@ -81,11 +81,7 @@ void calculate_deadline(CalcDeadlineRequest *req) {
 
   uint8_t scoop[SCOOP_SIZE];
   memcpy(scoop, gendata + (req->scoop_nr * SCOOP_SIZE), 32);
-  if (req->poc2) {
-      memcpy(scoop + 32, gendata + ((4095 - req->scoop_nr) * SCOOP_SIZE) + 32, 32);
-  } else{
-      memcpy(scoop + 32, gendata + (req->scoop_nr * SCOOP_SIZE) + 32, 32);
-  }
+  memcpy(scoop + 32, gendata + ((4095 - req->scoop_nr) * SCOOP_SIZE) + 32, 32);
 
   uint8_t finals2[HASH_SIZE];
   shabal(&deadline_sc, scoop, SCOOP_SIZE);
@@ -136,11 +132,7 @@ void calculate_deadlines_sse4(CalcDeadlineRequest **reqs){
   uint8_t scoops[SSE4_PARALLEL][SCOOP_SIZE];
   for (int i = 0; i < SSE4_PARALLEL; i++) {
     memcpy(scoops[i], gendata[i] + (reqs[i]->scoop_nr * SCOOP_SIZE), 32);
-    if (reqs[i]->poc2) {
-      memcpy(scoops[i] + 32, gendata[i] + ((4095 - reqs[i]->scoop_nr) * SCOOP_SIZE) + 32, 32);
-    } else {
-      memcpy(scoops[i]+ 32, gendata[i] + (reqs[i]->scoop_nr * SCOOP_SIZE) + 32, 32);
-    }
+    memcpy(scoops[i] + 32, gendata[i] + ((4095 - reqs[i]->scoop_nr) * SCOOP_SIZE) + 32, 32);
   }
 
   uint8_t finals2[SSE4_PARALLEL][HASH_SIZE];
@@ -202,11 +194,7 @@ void calculate_deadlines_avx2(CalcDeadlineRequest **reqs) {
   uint8_t scoops[AVX2_PARALLEL][SCOOP_SIZE];
   for (int i = 0; i < AVX2_PARALLEL; i++) {
     memcpy(scoops[i], gendata[i] + (reqs[i]->scoop_nr * SCOOP_SIZE), 32);
-    if (reqs[i]->poc2) {
-      memcpy(scoops[i] + 32, gendata[i] + ((4095 - reqs[i]->scoop_nr) * SCOOP_SIZE) + 32, 32);
-    } else {
-      memcpy(scoops[i] + 32, gendata[i] + (reqs[i]->scoop_nr * SCOOP_SIZE) + 32, 32);
-    }
+    memcpy(scoops[i] + 32, gendata[i] + ((4095 - reqs[i]->scoop_nr) * SCOOP_SIZE) + 32, 32);
   }
 
   uint8_t finals2[AVX2_PARALLEL][HASH_SIZE];
