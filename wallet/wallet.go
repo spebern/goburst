@@ -64,6 +64,39 @@ type SendMoneyMultiReply struct {
 	errorDescriptionField
 }
 
+type GetAccountTransactionsReply struct {
+	Transactions []struct {
+		SenderPublicKey string `json:"senderPublicKey"`
+		Signature       string `json:"signature"`
+		FeeNQT          int64  `json:"feeNQT,string"`
+		Type            int    `json:"type"`
+		Confirmations   int    `json:"confirmations"`
+		FullHash        string `json:"fullHash"`
+		Version         int    `json:"version"`
+		EcBlockID       uint64 `json:"ecBlockId,string"`
+		SignatureHash   string `json:"signatureHash"`
+		Attachment      struct {
+			VersionMessage int    `json:"version.Message"`
+			MessageIsText  bool   `json:"messageIsText"`
+			Message        string `json:"message"`
+		} `json:"attachment"`
+		SenderRS       string `json:"senderRS"`
+		Subtype        int    `json:"subtype"`
+		AmountNQT      int64  `json:"amountNQT,string"`
+		Sender         uint64 `json:"sender,string"`
+		RecipientRS    string `json:"recipientRS"`
+		Recipient      uint64 `json:"recipient,string"`
+		EcBlockHeight  uint64 `json:"ecBlockHeight"`
+		Block          string `json:"block"`
+		BlockTimestamp int64  `json:"blockTimestamp"`
+		Deadline       uint64 `json:"deadline"`
+		Transaction    uint64 `json:"transaction,string"`
+		Timestamp      int64  `json:"timestamp"`
+		Height         uint64 `json:"height"`
+	} `json:"transactions"`
+	errorDescriptionField
+}
+
 type failable interface {
 	getError() string
 }
@@ -115,7 +148,7 @@ type Wallet interface {
 	// GetAccountPublicKey() (*GetAccountPublicKeyReply, error)
 	// GetAccountSubscriptions() (*GetAccountSubscriptionsReply, error)
 	// GetAccountTransactionIds() (*GetAccountTransactionIdsReply, error)
-	// GetAccountTransactions() (*GetAccountTransactionsReply, error)
+	GetAccountTransactions(uint64, int, int, int64) (*GetAccountTransactionsReply, error)
 	GetAccountsWithRewardRecipient(uint64) (*GetAccountsWithRewardRecipientReply, error)
 	// GetAlias() (*GetAliasReply, error)
 	// GetAliases() (*GetAliasesReply, error)
@@ -325,4 +358,15 @@ func (w *wallet) SendMoneyMulti(idToAmount map[uint64]int64, txFee int64) (*Send
 		"deadline":     "1440",
 		"feeNQT":       fmt.Sprint(txFee),
 		"secretPhrase": w.secretPhrase}, &sendMoneyMultiReply)
+}
+
+func (w *wallet) GetAccountTransactions(accountID uint64, typ, subtyp int, timestamp int64) (
+	*GetAccountTransactionsReply, error) {
+	var getAccountTransactionsReply GetAccountTransactionsReply
+	return &getAccountTransactionsReply, w.processJSONRequest("POST", map[string]string{
+		"requestType": "getAccountTransactions",
+		"type":        fmt.Sprint(typ),
+		"account":     strconv.FormatUint(accountID, 10),
+		"subtype":     fmt.Sprint(subtyp),
+		"timestamp":   strconv.FormatInt(timestamp, 10)}, &getAccountTransactionsReply)
 }

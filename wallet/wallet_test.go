@@ -8,11 +8,13 @@ import (
 )
 
 const (
-	devWalletURL = "http://wallet.dev.burst-test.net:6876"
-	secretPhrase = "huge nice raw lovely break remember dig mighty cause war keep dreamer"
+	devWalletURL  = "http://wallet.dev.burst-test.net:6876"
+	realWalletURL = "https://wallet.burst.cryptoguru.org:8125"
+	secretPhrase  = "huge nice raw lovely break remember dig mighty cause war keep dreamer"
 )
 
 var w = NewWallet(devWalletURL, secretPhrase, 10*time.Second).(*wallet)
+var rw = NewWallet(realWalletURL, "", 10*time.Second).(*wallet)
 
 func TestNewWallet(t *testing.T) {
 	assert.Equal(t, w.url, devWalletURL)
@@ -73,4 +75,10 @@ func TestGetBlock(t *testing.T) {
 	assert.Equal(t, uint64(14996553267393132899), res.Block)
 	assert.Equal(t, uint64(4), res.Height)
 	assert.Equal(t, uint64(95200229), res.Timestamp)
+func TestGetAccountTransactions(t *testing.T) {
+	res, err := rw.GetAccountTransactions(1661865342978896789, 1, 0, 115714842)
+	if !assert.Nil(t, err) {
+		return
+	}
+	assert.NotEmpty(t, res.Transactions)
 }
