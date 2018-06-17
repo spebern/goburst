@@ -32,8 +32,10 @@ func TestGetMiningInfo(t *testing.T) {
 }
 
 func TestSubmitNonce(t *testing.T) {
-	res, err := w.SubmitNonce(10282355196851764065, 0,
-		"glad suffer red during single glow shut slam hill death lust although")
+	res, err := w.SubmitNonce(&SubmitNonceRequest{
+		AccountID:    10282355196851764065,
+		Nonce:        0,
+		SecretPhrase: "glad suffer red during single glow shut slam hill death lust although"})
 	if assert.Nil(t, err) {
 		assert.Equal(t, "success", res.Result)
 		assert.NotEmpty(t, "deadline", res.Deadline)
@@ -42,14 +44,15 @@ func TestSubmitNonce(t *testing.T) {
 }
 
 func TestGetAccountsWithRewardRecipient(t *testing.T) {
-	res, err := w.GetAccountsWithRewardRecipient(5658931570366906527)
+	res, err := w.GetAccountsWithRewardRecipient(&GetAccountsWithRewardRecipientRequest{
+		AccountID: 5658931570366906527})
 	if assert.Nil(t, err) {
 		assert.NotEmpty(t, res.Recipients)
 	}
 }
 
 func TestGetBlock(t *testing.T) {
-	res, err := rw.GetBlock(471696, 0, 0, true)
+	res, err := rw.GetBlock(&GetBlockRequest{Height: 471696})
 	if !assert.Nil(t, err) {
 		return
 	}
@@ -77,8 +80,44 @@ func TestGetBlock(t *testing.T) {
 	assert.NotEmpty(t, res.Timestamp)
 }
 
+func TestEncodeRecipients(t *testing.T) {
+	_, err := EncodeRecipients(make(map[uint64]int64))
+	assert.NotNil(t, err)
+	encoded, err := EncodeRecipients(map[uint64]int64{
+		1: 2,
+		3: 4})
+	if assert.Nil(t, err) {
+		assert.Equal(t, "1:2;3:4", encoded)
+	}
+}
+
+func TestSendMoney(t *testing.T) {
+	// res, err := w.SendMoney(&SendMoneyRequest{
+	// 	Recipient: 1,
+	// 	AmountNQT: 1,
+	// 	FeeNQT:    100000000,
+	// 	Deadline:  1440})
+	// if assert.Nil(t, err) {
+	// 	assert.NotEmpty(t, res.TxID)
+	// }
+}
+
+func TestSendMoneyMulti(t *testing.T) {
+	// res, err := w.SendMoneyMulti(&SendMoneyMultiRequest{
+	// 	Recipients: "1:2;3:4",
+	// 	FeeNQT:     100000000,
+	// 	Deadline:   1440})
+	// if assert.Nil(t, err) {
+	// 	assert.NotEmpty(t, res.TxID)
+	// }
+}
+
 func TestGetAccountTransactions(t *testing.T) {
-	res, err := rw.GetAccountTransactions(1661865342978896789, 1, 0, 115714842)
+	res, err := rw.GetAccountTransactions(&GetAccountTransactionsRequest{
+		Account:   1661865342978896789,
+		Type:      1,
+		Subtype:   0,
+		Timestamp: 115714842})
 	if !assert.Nil(t, err) {
 		return
 	}

@@ -8,7 +8,30 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/google/go-querystring/query"
 )
+
+type requestTypeField struct {
+	RequestType string `url:"requestType"`
+}
+
+type failable interface {
+	getError() string
+}
+
+type errorDescriptionField struct {
+	ErrorDescription string `json:"errorDescription,omitempty"`
+}
+
+func (ef errorDescriptionField) getError() string {
+	return ef.ErrorDescription
+}
+
+type GetMiningInfoRequest struct {
+	requestTypeField
+	res GetMiningInfoReply `url:"-"`
+}
 
 type GetMiningInfoReply struct {
 	GenerationSignature string `json:"generationSignature"`
@@ -17,10 +40,27 @@ type GetMiningInfoReply struct {
 	errorDescriptionField
 }
 
+type SubmitNonceRequest struct {
+	requestTypeField
+	AccountID    uint64 `url:"accountId"`
+	Nonce        uint64 `url:"nonce"`
+	SecretPhrase string `url:"secretPhrase"`
+	res          SubmitNonceReply
+}
+
 type SubmitNonceReply struct {
 	Deadline uint64 `json:"deadline"`
 	Result   string `json:"result"`
 	errorDescriptionField
+}
+
+type GetBlockRequest struct {
+	requestTypeField
+	Block               uint64 `url:"block,omitempty"`
+	Height              uint64 `url:"height,omitempty"`
+	Timestamp           int64  `url:"timestamp,omitempty"`
+	IncludeTransactions bool   `url:"includeTransactions,omitempty"`
+	res                 GetBlockReply
 }
 
 type GetBlockReply struct {
@@ -49,9 +89,26 @@ type GetBlockReply struct {
 	errorDescriptionField
 }
 
+type GetAccountsWithRewardRecipientRequest struct {
+	requestTypeField
+	AccountID uint64 `url:"account"`
+	res       GetAccountsWithRewardRecipientReply
+}
+
 type GetAccountsWithRewardRecipientReply struct {
 	Recipients []Uint64Str `json:"accounts"`
 	errorDescriptionField
+}
+
+type SendMoneyRequest struct {
+	requestTypeField
+	Recipient                     uint64 `url:"recipient,string"`
+	AmountNQT                     int64  `url:"amountNQT,string"`
+	FeeNQT                        int64  `url:"feeNQT,string"`
+	Deadline                      uint   `url:"deadline"`
+	ReferencedTransactionFullHash string `url:"referencedTransactionFullHash,omitempty"`
+	Broadcast                     bool   `url:"broadcast,omitempty"`
+	res                           SendMoneyReply
 }
 
 type SendMoneyReply struct {
@@ -59,9 +116,31 @@ type SendMoneyReply struct {
 	errorDescriptionField
 }
 
+type SendMoneyMultiRequest struct {
+	requestTypeField
+	Recipients                    string `url:"recipients"`
+	FeeNQT                        int64  `url:"feeNQT,string"`
+	Deadline                      uint   `url:"deadline"`
+	ReferencedTransactionFullHash string `url:"referencedTransactionFullHash,omitempty"`
+	Broadcast                     bool   `url:"broadcast,omitempty"`
+	res                           SendMoneyMultiReply
+}
+
 type SendMoneyMultiReply struct {
 	TxID uint64 `json:"transaction,string"`
 	errorDescriptionField
+}
+
+type GetAccountTransactionsRequest struct {
+	requestTypeField
+	Account               uint64 `url:"account,string"`
+	Timestamp             int64  `url:"timestamp,omitempty"`
+	Type                  int    `url:"type,omitempty"`
+	Subtype               int    `url:"type,omitempty"`
+	FirstIndex            int    `url:"firstIndex,omitempty"`
+	LastIndex             int    `url:"lastIndex,omitempty"`
+	NumberOfConfirmations int    `url:"numberOfConfirmations,omitempty"`
+	res                   GetAccountTransactionsReply
 }
 
 type GetAccountTransactionsReply struct {
@@ -95,18 +174,6 @@ type GetAccountTransactionsReply struct {
 		Height         uint64 `json:"height"`
 	} `json:"transactions"`
 	errorDescriptionField
-}
-
-type failable interface {
-	getError() string
-}
-
-type errorDescriptionField struct {
-	ErrorDescription string `json:"errorDescription,omitempty"`
-}
-
-func (ef errorDescriptionField) getError() string {
-	return ef.ErrorDescription
 }
 
 type Wallet interface {
@@ -148,8 +215,8 @@ type Wallet interface {
 	// GetAccountPublicKey() (*GetAccountPublicKeyReply, error)
 	// GetAccountSubscriptions() (*GetAccountSubscriptionsReply, error)
 	// GetAccountTransactionIds() (*GetAccountTransactionIdsReply, error)
-	GetAccountTransactions(uint64, int, int, int64) (*GetAccountTransactionsReply, error)
-	GetAccountsWithRewardRecipient(uint64) (*GetAccountsWithRewardRecipientReply, error)
+	// GetAccountTransactions(uint64, int, int, int64) (*GetAccountTransactionsReply, error)
+	// GetAccountsWithRewardRecipient(uint64) (*GetAccountsWithRewardRecipientReply, error)
 	// GetAlias() (*GetAliasReply, error)
 	// GetAliases() (*GetAliasesReply, error)
 	// GetAllAssets() (*GetAllAssetsReply, error)
@@ -169,7 +236,7 @@ type Wallet interface {
 	// GetBidOrder() (*GetBidOrderReply, error)
 	// GetBidOrderIds() (*GetBidOrderIdsReply, error)
 	// GetBidOrders() (*GetBidOrdersReply, error)
-	GetBlock(height, block, timestamp uint64, includeTransactions bool) (*GetBlockReply, error)
+	// GetBlock(height, block, timestamp uint64, includeTransactions bool) (*GetBlockReply, error)
 	// GetBlockId() (*GetBlockIdReply, error)
 	// GetBlockchainStatus() (*GetBlockchainStatusReply, error)
 	// GetBlocks() (*GetBlocksReply, error)
@@ -207,15 +274,15 @@ type Wallet interface {
 	// RsConvert() (*RsConvertReply, error)
 	// SellAlias() (*SellAliasReply, error)
 	// SendMessage() (*SendMessageReply, error)
-	SendMoney(uint64, int64, int64) (*SendMoneyReply, error)
-	SendMoneyMulti(map[uint64]int64, int64) (*SendMoneyMultiReply, error)
+	// SendMoney(uint64, int64, int64) (*SendMoneyReply, error)
+	// SendMoneyMulti(map[uint64]int64, int64) (*SendMoneyMultiReply, error)
 	// SendMoneyEscrow() (*SendMoneyEscrowReply, error)
 	// SendMoneySubscription() (*SendMoneySubscriptionReply, error)
 	// SetAccountInfo() (*SetAccountInfoReply, error)
 	// SetAlias() (*SetAliasReply, error)
 	// SetRewardRecipient() (*SetRewardRecipientReply, error)
 	// SignTransaction() (*SignTransactionReply, error)
-	SubmitNonce(accountID, nonce uint64, secretPhrase string) (*SubmitNonceReply, error)
+	// SubmitNonce(accountID, nonce uint64, secretPhrase string) (*SubmitNonceReply, error)
 	// SubscriptionCancel() (*SubscriptionCancelReply, error)
 	// TransferAsset() (*TransferAssetReply, error)
 }
@@ -257,17 +324,28 @@ func NewWallet(url string, secretPhrase string, timeout time.Duration) Wallet {
 		client:       &http.Client{Timeout: timeout}}
 }
 
-func (w *wallet) processJSONRequest(method string, params map[string]string, dest failable) error {
+func EncodeRecipients(idToAmount map[uint64]int64) (string, error) {
+	if len(idToAmount) == 0 {
+		return "", errors.New("no recipients")
+	}
+	recipients := ""
+	for accountID, amount := range idToAmount {
+		recipients += strconv.FormatUint(accountID, 10) + ":" + fmt.Sprint(amount) + ";"
+	}
+	return recipients[:len(recipients)-1], nil
+}
+
+func (w *wallet) processJSONRequest(method string, queryStruct interface{}, dest failable) error {
 	req, err := http.NewRequest(method, w.apiURL, nil)
 	if err != nil {
 		return err
 	}
 
-	q := req.URL.Query()
-	for k, v := range params {
-		q.Add(k, v)
+	v, err := query.Values(queryStruct)
+	if err != nil {
+		return err
 	}
-	req.URL.RawQuery = q.Encode()
+	req.URL.RawQuery = v.Encode()
 
 	res, err := w.client.Do(req)
 	if err != nil {
@@ -292,81 +370,39 @@ func (w *wallet) processJSONRequest(method string, params map[string]string, des
 }
 
 func (w *wallet) GetMiningInfo() (*GetMiningInfoReply, error) {
-	var getMiningInfoReply GetMiningInfoReply
-	return &getMiningInfoReply, w.processJSONRequest(
-		"GET", map[string]string{"requestType": "getMiningInfo"}, &getMiningInfoReply)
+	req := GetMiningInfoRequest{}
+	req.RequestType = "getMiningInfo"
+	return &req.res, w.processJSONRequest("GET", req, &req.res)
 }
 
-func (w *wallet) SubmitNonce(accountID, nonce uint64, secretPhrase string) (*SubmitNonceReply, error) {
-	var submitNonceReply SubmitNonceReply
-	return &submitNonceReply, w.processJSONRequest("POST", map[string]string{
-		"requestType":  "submitNonce",
-		"accountId":    strconv.FormatUint(accountID, 10),
-		"nonce":        strconv.FormatUint(nonce, 10),
-		"secretPhrase": secretPhrase}, &submitNonceReply)
+func (w *wallet) SubmitNonce(req *SubmitNonceRequest) (*SubmitNonceReply, error) {
+	req.RequestType = "submitNonce"
+	return &req.res, w.processJSONRequest("POST", req, &req.res)
 }
 
-func (w *wallet) GetBlock(height, block, timestamp uint64, includeTransactions bool) (*GetBlockReply, error) {
-	var getBlockReply GetBlockReply
-	params := map[string]string{"requestType": "getBlock"}
-	if height != 0 {
-		params["height"] = strconv.FormatUint(height, 10)
-	}
-	if block != 0 {
-		params["block"] = strconv.FormatUint(block, 10)
-	}
-	if timestamp != 0 {
-		params["timestamp"] = strconv.FormatUint(timestamp, 10)
-	}
-	if includeTransactions {
-		params["includeTransactions"] = "1"
-	} else {
-		params["includeTransactions"] = "0"
-	}
-	return &getBlockReply, w.processJSONRequest("GET", params, &getBlockReply)
+func (w *wallet) GetBlock(req *GetBlockRequest) (*GetBlockReply, error) {
+	req.RequestType = "getBlock"
+	return &req.res, w.processJSONRequest("GET", req, &req.res)
 }
 
-func (w *wallet) GetAccountsWithRewardRecipient(accountID uint64) (*GetAccountsWithRewardRecipientReply, error) {
-	var getAccountsWithRewardRecipientReply GetAccountsWithRewardRecipientReply
-	return &getAccountsWithRewardRecipientReply, w.processJSONRequest("POST", map[string]string{
-		"requestType": "getAccountsWithRewardRecipient",
-		"account":     strconv.FormatUint(accountID, 10)}, &getAccountsWithRewardRecipientReply)
+func (w *wallet) GetAccountsWithRewardRecipient(req *GetAccountsWithRewardRecipientRequest) (
+	*GetAccountsWithRewardRecipientReply, error) {
+	req.RequestType = "getAccountsWithRewardRecipient"
+	return &req.res, w.processJSONRequest("POST", &req, &req.res)
 }
 
-func (w *wallet) SendMoney(accountID uint64, amount int64, txFee int64) (*SendMoneyReply, error) {
-	var sendMoneyReply SendMoneyReply
-	return &sendMoneyReply, w.processJSONRequest("POST", map[string]string{
-		"requestType":  "sendMoney",
-		"recipient":    strconv.FormatUint(accountID, 10),
-		"deadline":     "1440",
-		"feeNQT":       fmt.Sprint(txFee),
-		"amountNQT":    fmt.Sprint(amount),
-		"secretPhrase": w.secretPhrase}, sendMoneyReply)
+func (w *wallet) SendMoney(req *SendMoneyRequest) (*SendMoneyReply, error) {
+	req.RequestType = "sendMoney"
+	return &req.res, w.processJSONRequest("POST", req, &req.res)
 }
 
-func (w *wallet) SendMoneyMulti(idToAmount map[uint64]int64, txFee int64) (*SendMoneyMultiReply, error) {
-	var sendMoneyMultiReply SendMoneyMultiReply
-
-	recipients := ""
-	for accountID, amount := range idToAmount {
-		recipients += strconv.FormatUint(accountID, 10) + ":" + fmt.Sprint(amount) + ";"
-	}
-
-	return &sendMoneyMultiReply, w.processJSONRequest("POST", map[string]string{
-		"requestType":  "sendMoneyMulti",
-		"recipients":   recipients[:len(recipients)-1], // without trailing ";"
-		"deadline":     "1440",
-		"feeNQT":       fmt.Sprint(txFee),
-		"secretPhrase": w.secretPhrase}, &sendMoneyMultiReply)
+func (w *wallet) SendMoneyMulti(req *SendMoneyMultiRequest) (*SendMoneyMultiReply, error) {
+	req.RequestType = "sendMoneyMulti"
+	return &req.res, w.processJSONRequest("POST", req, &req.res)
 }
 
-func (w *wallet) GetAccountTransactions(accountID uint64, typ, subtyp int, timestamp int64) (
+func (w *wallet) GetAccountTransactions(req *GetAccountTransactionsRequest) (
 	*GetAccountTransactionsReply, error) {
-	var getAccountTransactionsReply GetAccountTransactionsReply
-	return &getAccountTransactionsReply, w.processJSONRequest("POST", map[string]string{
-		"requestType": "getAccountTransactions",
-		"type":        fmt.Sprint(typ),
-		"account":     strconv.FormatUint(accountID, 10),
-		"subtype":     fmt.Sprint(subtyp),
-		"timestamp":   strconv.FormatInt(timestamp, 10)}, &getAccountTransactionsReply)
+	req.RequestType = "getAccountTransactions"
+	return &req.res, w.processJSONRequest("POST", req, &req.res)
 }
