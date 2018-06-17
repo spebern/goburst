@@ -386,7 +386,7 @@ func (w *wallet) processJSONRequest(method string, queryStruct interface{}, dest
 	}
 
 	if errDescription := dest.getError(); errDescription != "" {
-		return fmt.Errof("request to %s: %s", u, errDescription)
+		return fmt.Errorf("request to %s: %s", u, errDescription)
 	}
 	return nil
 }
