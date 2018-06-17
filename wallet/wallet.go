@@ -308,7 +308,6 @@ type Wallet interface {
 
 type wallet struct {
 	client       *fasthttp.Client
-	url          string
 	apiURL       string
 	secretPhrase string
 }
@@ -335,7 +334,7 @@ func (i *Uint64Str) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, (*uint64)(i))
 }
 
-func NewWallet(url string, secretPhrase string, timeout time.Duration, trustAll bool) Wallet {
+func NewWallet(url string, timeout time.Duration, trustAll bool) Wallet {
 	client := fasthttp.Client{
 		ReadTimeout:  timeout,
 		WriteTimeout: timeout}
@@ -343,10 +342,8 @@ func NewWallet(url string, secretPhrase string, timeout time.Duration, trustAll 
 		client.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 	return &wallet{
-		url:          url,
-		apiURL:       url + "/burst?",
-		secretPhrase: secretPhrase,
-		client:       &client}
+		apiURL: url + "/burst?",
+		client: &client}
 }
 
 func EncodeRecipients(idToAmount map[uint64]int64) (string, error) {

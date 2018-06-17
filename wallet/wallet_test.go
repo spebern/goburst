@@ -10,14 +10,12 @@ import (
 const (
 	devWalletURL  = "http://wallet.dev.burst-test.net:6876"
 	realWalletURL = "https://wallet.burst.cryptoguru.org:8125"
-	secretPhrase  = "huge nice raw lovely break remember dig mighty cause war keep dreamer"
 )
 
-var w = NewWallet(devWalletURL, secretPhrase, 10*time.Second, false).(*wallet)
-var rw = NewWallet(realWalletURL, "", 10*time.Second, false).(*wallet)
+var w = NewWallet(devWalletURL, 10*time.Second, false).(*wallet)
+var rw = NewWallet(realWalletURL, 10*time.Second, false).(*wallet)
 
 func TestNewWallet(t *testing.T) {
-	assert.Equal(t, w.url, devWalletURL)
 	assert.Equal(t, w.apiURL, devWalletURL+"/burst?")
 }
 
