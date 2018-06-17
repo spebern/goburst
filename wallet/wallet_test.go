@@ -123,3 +123,20 @@ func TestGetAccountTransactions(t *testing.T) {
 	}
 	assert.NotEmpty(t, res.Transactions)
 }
+
+func TestGetAccount(t *testing.T) {
+	res, err := rw.GetAccount(&GetAccountRequest{Account: 12753605638793301951})
+	if !assert.Nil(t, err) {
+		return
+	}
+	assert.NotEmpty(t, res.UnconfirmedBalanceNQT)
+	assert.NotEmpty(t, res.GuaranteedBalanceNQT)
+	assert.NotEmpty(t, res.EffectiveBalanceNXT)
+	assert.NotEmpty(t, res.AccountRS)
+	assert.NotEmpty(t, res.Name)
+	assert.NotEmpty(t, res.ForgedBalanceNQT)
+	assert.NotEmpty(t, res.ForgedBalanceNQT)
+	assert.NotEmpty(t, res.BalanceNQT)
+	assert.NotEmpty(t, res.PublicKey)
+	assert.NotEmpty(t, res.Account)
+}

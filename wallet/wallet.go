@@ -176,6 +176,25 @@ type GetAccountTransactionsReply struct {
 	errorDescriptionField
 }
 
+type GetAccountRequest struct {
+	requestTypeField
+	Account uint64 `url:"account"`
+	res     GetAccountReply
+}
+
+type GetAccountReply struct {
+	UnconfirmedBalanceNQT int64  `json:"unconfirmedBalanceNQT,string"`
+	GuaranteedBalanceNQT  int64  `json:"guaranteedBalanceNQT,string"`
+	EffectiveBalanceNXT   int64  `json:"effectiveBalanceNXT,string"`
+	AccountRS             string `json:"accountRS"`
+	Name                  string `json:"name"`
+	ForgedBalanceNQT      int64  `json:"forgedBalanceNQT,string"`
+	BalanceNQT            int64  `json:"balanceNQT,string"`
+	PublicKey             string `json:"publicKey"`
+	Account               uint64 `json:"account,string"`
+	errorDescriptionField
+}
+
 type Wallet interface {
 	// BroadcastTransaction() (*BroadcastTransactionReply, error)
 	// BuyAlias() (*BuyAliasReply, error)
@@ -201,7 +220,7 @@ type Wallet interface {
 	// GetATDetails() (*GetATDetailsReply, error)
 	// GetATIds() (*GetATIdsReply, error)
 	// GetATLong() (*GetATLongReply, error)
-	// GetAccount() (*GetAccountReply, error)
+	GetAccount(*GetAccountRequest) (*GetAccountReply, error)
 	// GetAccountATs() (*GetAccountATsReply, error)
 	// GetAccountBlockIds() (*GetAccountBlockIdsReply, error)
 	// GetAccountBlocks() (*GetAccountBlocksReply, error)
@@ -405,4 +424,9 @@ func (w *wallet) GetAccountTransactions(req *GetAccountTransactionsRequest) (
 	*GetAccountTransactionsReply, error) {
 	req.RequestType = "getAccountTransactions"
 	return &req.res, w.processJSONRequest("POST", req, &req.res)
+}
+
+func (w *wallet) GetAccount(req *GetAccountRequest) (*GetAccountReply, error) {
+	req.RequestType = "getAccount"
+	return &req.res, w.processJSONRequest("GET", req, &req.res)
 }
