@@ -1,15 +1,15 @@
 package wallet
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/google/go-querystring/query"
+	"github.com/valyala/fasthttp"
 )
 
 type requestTypeField struct {
@@ -307,7 +307,7 @@ type Wallet interface {
 }
 
 type wallet struct {
-	client       *http.Client
+	client       *fasthttp.Client
 	url          string
 	apiURL       string
 	secretPhrase string
@@ -335,12 +335,18 @@ func (i *Uint64Str) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, (*uint64)(i))
 }
 
-func NewWallet(url string, secretPhrase string, timeout time.Duration) Wallet {
+func NewWallet(url string, secretPhrase string, timeout time.Duration, trustAll bool) Wallet {
+	client := fasthttp.Client{
+		ReadTimeout:  timeout,
+		WriteTimeout: timeout}
+	if trustAll {
+		client.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	}
 	return &wallet{
 		url:          url,
-		apiURL:       url + "/burst",
+		apiURL:       url + "/burst?",
 		secretPhrase: secretPhrase,
-		client:       &http.Client{Timeout: timeout}}
+		client:       &client}
 }
 
 func EncodeRecipients(idToAmount map[uint64]int64) (string, error) {
@@ -355,27 +361,27 @@ func EncodeRecipients(idToAmount map[uint64]int64) (string, error) {
 }
 
 func (w *wallet) processJSONRequest(method string, queryStruct interface{}, dest failable) error {
-	req, err := http.NewRequest(method, w.apiURL, nil)
-	if err != nil {
-		return err
-	}
-
 	v, err := query.Values(queryStruct)
 	if err != nil {
 		return err
 	}
-	req.URL.RawQuery = v.Encode()
+	u := w.apiURL + v.Encode()
 
-	res, err := w.client.Do(req)
+	var body []byte
+	var statusCode int
+	if method == "GET" {
+		statusCode, body, err = w.client.Get(body, u)
+	} else {
+		statusCode, body, err = w.client.Post(body, u, nil)
+	}
+
 	if err != nil {
 		return err
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
+	if statusCode != fasthttp.StatusOK {
+		return fmt.Errorf("wrong status code: %d for url %s", statusCode, u)
 	}
-	res.Body.Close()
 
 	err = json.Unmarshal(body, dest)
 	if err != nil {
