@@ -373,7 +373,7 @@ func (w *wallet) processJSONRequest(method string, queryStruct interface{}, dest
 	}
 
 	if err != nil {
-		return err
+		return fmt.Errof("request to %s: %v", u, err)
 	}
 
 	if statusCode != fasthttp.StatusOK {
@@ -386,7 +386,7 @@ func (w *wallet) processJSONRequest(method string, queryStruct interface{}, dest
 	}
 
 	if errDescription := dest.getError(); errDescription != "" {
-		return errors.New(errDescription)
+		return fmt.Errof("request to %s: %s", u, errDescription)
 	}
 	return nil
 }
