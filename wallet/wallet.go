@@ -85,7 +85,7 @@ type GetBlockReply struct {
 	Block                uint64      `json:"block,string"`
 	NextBlock            uint64      `json:"nextBlock,string"`
 	Height               uint64      `json:"height"`
-	Timestamp            uint64      `json:"timestamp"`
+	Timestamp            int32       `json:"timestamp"`
 	errorDescriptionField
 }
 
