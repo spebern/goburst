@@ -108,6 +108,7 @@ type SendMoneyRequest struct {
 	Deadline                      uint   `url:"deadline"`
 	ReferencedTransactionFullHash string `url:"referencedTransactionFullHash,omitempty"`
 	Broadcast                     bool   `url:"broadcast,omitempty"`
+	SecretPhrase                  string `url:"secretPhrase"`
 	res                           SendMoneyReply
 }
 
@@ -123,6 +124,7 @@ type SendMoneyMultiRequest struct {
 	Deadline                      uint   `url:"deadline"`
 	ReferencedTransactionFullHash string `url:"referencedTransactionFullHash,omitempty"`
 	Broadcast                     bool   `url:"broadcast,omitempty"`
+	SecretPhrase                  string `url:"secretPhrase"`
 	res                           SendMoneyMultiReply
 }
 
