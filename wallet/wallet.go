@@ -236,7 +236,7 @@ type Wallet interface {
 	// GetAccountPublicKey() (*GetAccountPublicKeyReply, error)
 	// GetAccountSubscriptions() (*GetAccountSubscriptionsReply, error)
 	// GetAccountTransactionIds() (*GetAccountTransactionIdsReply, error)
-	// GetAccountTransactions(uint64, int, int, int64) (*GetAccountTransactionsReply, error)
+	GetAccountTransactions(*GetAccountTransactionsRequest) (*GetAccountTransactionsReply, error)
 	// GetAccountsWithRewardRecipient(uint64) (*GetAccountsWithRewardRecipientReply, error)
 	// GetAlias() (*GetAliasReply, error)
 	// GetAliases() (*GetAliasesReply, error)
