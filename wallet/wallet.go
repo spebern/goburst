@@ -255,7 +255,7 @@ type Wallet interface {
 	// GetBidOrder() (*GetBidOrderReply, error)
 	// GetBidOrderIds() (*GetBidOrderIdsReply, error)
 	// GetBidOrders() (*GetBidOrdersReply, error)
-	// GetBlock(height, block, timestamp uint64, includeTransactions bool) (*GetBlockReply, error)
+	GetBlock(*GetBlockRequest) (*GetBlockReply, error)
 	// GetBlockId() (*GetBlockIdReply, error)
 	// GetBlockchainStatus() (*GetBlockchainStatusReply, error)
 	// GetBlocks() (*GetBlocksReply, error)
