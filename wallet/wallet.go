@@ -301,7 +301,7 @@ type Wallet interface {
 	// SetAlias() (*SetAliasReply, error)
 	// SetRewardRecipient() (*SetRewardRecipientReply, error)
 	// SignTransaction() (*SignTransactionReply, error)
-	// SubmitNonce(accountID, nonce uint64, secretPhrase string) (*SubmitNonceReply, error)
+	SubmitNonce(*SubmitNonceRequest) (*SubmitNonceReply, error)
 	// SubscriptionCancel() (*SubscriptionCancelReply, error)
 	// TransferAsset() (*TransferAssetReply, error)
 }
