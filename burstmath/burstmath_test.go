@@ -34,8 +34,8 @@ func TestCalculateDeadlines(t *testing.T) {
 		reqs[i] = NewCalcDeadlineRequest(10282355196851764065, 6729, 18325193796, 30, genSig).native
 	}
 
-	CalculateDeadline(reqs[0])
-	assert.Equal(t, uint64(0x37143a0a), uint64(reqs[0].deadline), "Calculated deadline is incorrect")
+	// CalculateDeadline(reqs[0])
+	// assert.Equal(t, uint64(0x37143a0a), uint64(reqs[0].deadline), "Calculated deadline is incorrect")
 
 	if !cpuid.CPU.SSE4() {
 		t.Log("SSE4 not supported, skipping related tests")

@@ -66,9 +66,9 @@ func CalcScoop(height uint64, genSig []byte) uint32 {
 
 // CalculateDeadline calculates a single deadline
 // TODO: might fail on some go versions(cgo argument has Go pointer to Go pointer): GODEBUG=cgocheck=0
-func CalculateDeadline(req *C.CalcDeadlineRequest) {
-	C.calculate_deadline(req)
-}
+// func CalculateDeadline(req *C.CalcDeadlineRequest) {
+// 	C.calculate_deadline(req)
+// }
 
 // CalculateDeadlinesSSE4 can calculate 4 deadlines in parallel using sse4 intrinsics
 func CalculateDeadlinesSSE4(reqs []*C.CalcDeadlineRequest) {
