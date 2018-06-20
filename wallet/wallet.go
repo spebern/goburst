@@ -12,6 +12,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+const MaxMultiRecipients = 64
+
 type requestTypeField struct {
 	RequestType string `url:"requestType"`
 }
@@ -352,6 +354,9 @@ func NewWallet(url string, timeout time.Duration, trustAll bool) Wallet {
 func EncodeRecipients(idToAmount map[uint64]int64) (string, error) {
 	if len(idToAmount) == 0 {
 		return "", errors.New("no recipients")
+	}
+	if len(idToAmount) > MaxMultiRecipients {
+		panic(fmt.Sprintf("cannot send to more than %d recipients at a time", MaxMultiRecipients))
 	}
 	recipients := ""
 	for accountID, amount := range idToAmount {

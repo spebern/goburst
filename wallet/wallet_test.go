@@ -87,6 +87,12 @@ func TestEncodeRecipients(t *testing.T) {
 	if assert.Nil(t, err) {
 		assert.True(t, encoded == "1:2;3:4" || encoded == "3:4;1:2")
 	}
+
+	tooManyRecips := make(map[uint64]int64)
+	for i := uint64(0); i < 65; i++ {
+		tooManyRecips[i] = 1
+	}
+	assert.Panics(t, func() { EncodeRecipients(tooManyRecips) })
 }
 
 func TestSendMoney(t *testing.T) {
