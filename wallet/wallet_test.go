@@ -12,7 +12,7 @@ const (
 	realWalletURL = "https://wallet.burst.cryptoguru.org:8125"
 )
 
-var w = NewWallet(devWalletURL, 10*time.Second, false).(*wallet)
+var w = NewWallet(devWalletURL, 20*time.Second, false).(*wallet)
 var rw = NewWallet(realWalletURL, 10*time.Second, false).(*wallet)
 
 func TestNewWallet(t *testing.T) {
@@ -30,10 +30,10 @@ func TestGetMiningInfo(t *testing.T) {
 }
 
 func TestSubmitNonce(t *testing.T) {
-	res, err := w.SubmitNonce(&SubmitNonceRequest{
-		AccountID:    10282355196851764065,
-		Nonce:        0,
-		SecretPhrase: "glad suffer red during single glow shut slam hill death lust although"})
+	res, err := rw.SubmitNonce(&SubmitNonceRequest{
+		AccountID:    6854086812727909295,
+		Nonce:        10,
+		SecretPhrase: "sigh forever inner appreciate fail unless second image choice pink huge control"})
 	if assert.Nil(t, err) {
 		assert.Equal(t, "success", res.Result)
 		assert.NotEmpty(t, "deadline", res.Deadline)
@@ -85,37 +85,39 @@ func TestEncodeRecipients(t *testing.T) {
 		1: 2,
 		3: 4})
 	if assert.Nil(t, err) {
-		assert.Equal(t, "1:2;3:4", encoded)
+		assert.True(t, encoded == "1:2;3:4" || encoded == "3:4;1:2")
 	}
 }
 
 func TestSendMoney(t *testing.T) {
-	// res, err := w.SendMoney(&SendMoneyRequest{
-	// 	Recipient: 1,
-	// 	AmountNQT: 1,
-	// 	FeeNQT:    100000000,
-	// 	Deadline:  1440})
-	// if assert.Nil(t, err) {
-	// 	assert.NotEmpty(t, res.TxID)
-	// }
+	res, err := w.SendMoney(&SendMoneyRequest{
+		Recipient:    6418289488649374107,
+		AmountNQT:    1,
+		FeeNQT:       10000000,
+		Deadline:     1440,
+		SecretPhrase: "glad suffer red during single glow shut slam hill death lust although"})
+	if assert.Nil(t, err) {
+		assert.NotEmpty(t, res.TxID)
+	}
 }
 
 func TestSendMoneyMulti(t *testing.T) {
-	// res, err := w.SendMoneyMulti(&SendMoneyMultiRequest{
-	// 	Recipients: "1:2;3:4",
-	// 	FeeNQT:     100000000,
-	// 	Deadline:   1440})
-	// if assert.Nil(t, err) {
-	// 	assert.NotEmpty(t, res.TxID)
-	// }
+	res, err := w.SendMoneyMulti(&SendMoneyMultiRequest{
+		Recipients:   "12441003299556495598:100000000;11253871103436815155:20000000",
+		FeeNQT:       10000000,
+		Deadline:     1440,
+		SecretPhrase: "glad suffer red during single glow shut slam hill death lust although"})
+	if assert.Nil(t, err) {
+		assert.NotEmpty(t, res.TxID)
+	}
 }
 
 func TestGetAccountTransactions(t *testing.T) {
-	res, err := rw.GetAccountTransactions(&GetAccountTransactionsRequest{
-		Account:   1661865342978896789,
+	res, err := w.GetAccountTransactions(&GetAccountTransactionsRequest{
+		Account:   5658931570366906527,
 		Type:      1,
 		Subtype:   0,
-		Timestamp: 115714842})
+		Timestamp: 1})
 	if !assert.Nil(t, err) {
 		return
 	}
