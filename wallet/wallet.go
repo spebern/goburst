@@ -199,6 +199,43 @@ type GetAccountReply struct {
 	errorDescriptionField
 }
 
+type GetTransactionRequest struct {
+	requestTypeField
+	Transaction uint64 `url:"transaction"`
+	FullHash    string `url:"fullHash"`
+	res         GetTransactionReply
+}
+
+type GetTransactionReply struct {
+	SenderPublicKey string `json:"senderPublicKey"`
+	Signature       string `json:"signature"`
+	FeeNQT          int64  `json:"feeNQT,string"`
+	Type            int    `json:"type"`
+	Confirmations   int    `json:"confirmations"`
+	FullHash        string `json:"fullHash"`
+	Version         int    `json:"version"`
+	EcBlockID       uint64 `json:"ecBlockId,string"`
+	SignatureHash   string `json:"signatureHash"`
+	// TODO: recipients should be decoded into something like
+	// struct { AccountID uint64, Amount int64 }
+	Attachment struct {
+		Recipients              [][]string `json:"recipients"`
+		VersionMultiOutCreation int        `json:"version.MultiOutCreation"`
+	} `json:"attachment"`
+	SenderRS       string `json:"senderRS"`
+	Subtype        int    `json:"subtype"`
+	AmountNQT      int64  `json:"amountNQT,string"`
+	Sender         uint64 `json:"sender,string"`
+	EcBlockHeight  uint64 `json:"ecBlockHeight"`
+	Block          uint64 `json:"block,string"`
+	BlockTimestamp int64  `json:"blockTimestamp"`
+	Deadline       int    `json:"deadline"`
+	Transaction    uint64 `json:"transaction,string"`
+	Timestamp      int64  `json:"timestamp"`
+	Height         uint64 `json:"height"`
+	errorDescriptionField
+}
+
 type Wallet interface {
 	// BroadcastTransaction() (*BroadcastTransactionReply, error)
 	// BuyAlias() (*BuyAliasReply, error)
@@ -283,7 +320,7 @@ type Wallet interface {
 	// GetSubscriptionsToAccount() (*GetSubscriptionsToAccountReply, error)
 	// GetTime() (*GetTimeReply, error)
 	// GetTrades() (*GetTradesReply, error)
-	// GetTransaction() (*GetTransactionReply, error)
+	GetTransaction(*GetTransactionRequest) (*GetTransactionReply, error)
 	// GetTransactionBytes() (*GetTransactionBytesReply, error)
 	// GetUnconfirmedTransactionIds() (*GetUnconfirmedTransactionIdsReply, error)
 	// GetUnconfirmedTransactions() (*GetUnconfirmedTransactionsReply, error)
@@ -439,5 +476,10 @@ func (w *wallet) GetAccountTransactions(req *GetAccountTransactionsRequest) (
 
 func (w *wallet) GetAccount(req *GetAccountRequest) (*GetAccountReply, error) {
 	req.RequestType = "getAccount"
+	return &req.res, w.processJSONRequest("GET", req, &req.res)
+}
+
+func (w *wallet) GetTransaction(req *GetTransactionRequest) (*GetTransactionReply, error) {
+	req.RequestType = "getTransaction"
 	return &req.res, w.processJSONRequest("GET", req, &req.res)
 }

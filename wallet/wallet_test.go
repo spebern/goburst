@@ -146,3 +146,33 @@ func TestGetAccount(t *testing.T) {
 	assert.NotEmpty(t, res.PublicKey)
 	assert.NotEmpty(t, res.Account)
 }
+
+func TestGetTransaction(t *testing.T) {
+	res, err := w.GetTransaction(&GetTransactionRequest{Transaction: 7877411804310616845})
+	if !assert.Nil(t, err) {
+		return
+	}
+	assert.NotEmpty(t, res.SenderPublicKey)
+	assert.NotEmpty(t, res.Signature)
+	assert.NotEmpty(t, res.FeeNQT)
+	assert.NotEmpty(t, res.Confirmations)
+	assert.NotEmpty(t, res.FullHash)
+	assert.NotEmpty(t, res.Version)
+	assert.NotEmpty(t, res.EcBlockID)
+	assert.NotEmpty(t, res.SignatureHash)
+	if assert.NotEmpty(t, res.Attachment) {
+		assert.NotEmpty(t, res.Attachment.Recipients)
+		assert.NotEmpty(t, res.Attachment.VersionMultiOutCreation)
+	}
+	assert.NotEmpty(t, res.SenderRS)
+	assert.NotEmpty(t, res.Subtype)
+	assert.NotEmpty(t, res.AmountNQT)
+	assert.NotEmpty(t, res.Sender)
+	assert.NotEmpty(t, res.EcBlockHeight)
+	assert.NotEmpty(t, res.Block)
+	assert.NotEmpty(t, res.BlockTimestamp)
+	assert.NotEmpty(t, res.Deadline)
+	assert.NotEmpty(t, res.Transaction)
+	assert.NotEmpty(t, res.Timestamp)
+	assert.NotEmpty(t, res.Height)
+}
