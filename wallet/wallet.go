@@ -201,8 +201,8 @@ type GetAccountReply struct {
 
 type GetTransactionRequest struct {
 	requestTypeField
-	Transaction uint64 `url:"transaction"`
-	FullHash    string `url:"fullHash"`
+	Transaction uint64 `url:"transaction,omitempty"`
+	FullHash    string `url:"fullHash,omitempty"`
 	res         GetTransactionReply
 }
 
